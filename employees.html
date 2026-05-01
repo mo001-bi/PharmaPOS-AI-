@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management | PharmaPOS AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-prescription-bottle"></i> PharmaPOS AI</div>
+            <nav>
+                <a href="dashboard.html" class="nav-item"> <i class="fas fa-chart-pie"></i>  Dashboard</a>
+                <a href="inventory.html" class="nav-item"> <i class="fas fa-cubes"></i>  Inventory</a>
+                <a href="prescription-scanner.html" class="nav-item"> <i class="fas fa-camera-retro"></i> Smart Rx Scan</a>
+                <a href="add-medicine.html" class="nav-item">  <i class="fas fa-plus-circle"></i>   Add Medicine</a>
+                <a href="billing.html" class="nav-item"> <i class="fas fa-shopping-cart"></i> Billing POS</a>
+                <a href="suppliers.html" class="nav-item"> <i class="fas fa-truck"></i>  Suppliers</a>
+                <a href="customers.html" class="nav-item"> <i class="fas fa-users"></i> CRM / Loyalty</a>
+                <a href="reports.html" class="nav-item"> <i class="fas fa-chart-line"></i>  Analytics</a>
+                <a href="employees.html" class="nav-item active"> <i class="fas fa-user-shield"></i>  Employees</a>
+                <a href="settings.html" class="nav-item"> <i class="fas fa-sliders-h"></i>   Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="card">
+                <h3><i class="fas fa-user-tie"></i> Current User Role</h3>
+                <p>Logged in as: <strong id="currentUserRoleDisplay"></strong></p>
+                <div id="offlineStatus" class="badge" style="margin-top: 8px;"></div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-users"></i> Employee Directory</h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead><tr><th>Name</th><th>Role</th><th>Permissions</th><th>Actions</th></tr></thead>
+                        <tbody id="employeeTableBody"></tbody>
+                    </table>
+                </div>
+                <button id="backupCloudBtn" style="margin-top: 1rem;"><i class="fas fa-cloud-upload-alt"></i> Backup & Cloud Sync</button>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-history"></i> Audit Log (Simulated)</h3>
+                <div id="auditLogContainer">
+                    <p>2025-04-30 10:32: Owner logged in<br>
+                    2025-04-30 11:15: Cashier processed sale #1023<br>
+                    2025-04-30 12:00: Pharmacist updated stock of Crocin</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (mobile) updated -->
+        <div class="bottom-nav">
+            <!-- First 5 (visible initially) -->
+            <a href="dashboard.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Home</span></a>
+            <a href="inventory.html" class="nav-icon"><i class="fas fa-boxes"></i><span>Stock</span></a>
+            <a href="prescription-scanner.html" class="nav-icon"><i class="fas fa-camera"></i><span>Scan Rx</span></a>
+            <a href="add-medicine.html" class="nav-icon"><i class="fas fa-plus-circle"></i><span>Add Med</span></a>
+            <a href="billing.html" class="nav-icon"><i class="fas fa-cash-register"></i><span>Bill</span></a>
+        
+            <!-- Next 5 (scroll to see) -->
+            <a href="suppliers.html" class="nav-icon"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+            <a href="customers.html" class="nav-icon"><i class="fas fa-users"></i><span>CRM</span></a>
+            <a href="reports.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="employees.html" class="nav-icon"><i class="fas fa-user-shield"></i><span>Staff</span></a>
+            <a href="settings.html" class="nav-icon"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
+        </div>
+    </div>
+
+    <div class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark</div>
+
+    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Employee Management & RBAC Module
+         * Shows employee list, role-based restrictions, audit trail simulation.
+         */
+
+        function renderEmployeeTable() {
+            const html = employees.map(emp => `
+                <tr>
+                    <td>${emp.name}</td>
+                    <td><span class="badge ${emp.role === 'owner' ? 'badge-danger' : 'badge-success'}">${emp.role}</span></td>
+                    <td>${emp.permissions || 'restricted'}</td>
+                    <td><button class="btn-sm" onclick="viewAudit('${emp.name}')">View Audit</button></td>
+                </tr>
+            `).join('');
+            document.getElementById('employeeTableBody').innerHTML = html;
+        }
+
+        window.viewAudit = (name) => {
+            alert(`Audit log for ${name}:\n- Last login: today 09:30 AM\n- Actions: Inventory updates, Billing (5 transactions)`);
+        };
+
+        document.getElementById('backupCloudBtn')?.addEventListener('click', () => {
+            alert('☁️ Cloud backup initiated. All data (inventory, customers, employees) saved to secure server. (Demo simulation)');
+            window.saveAppState(); // ensure local state is fresh
+        });
+
+        // Display current user role and offline mode status
+        function updateUserInfo() {
+            const roleSpan = document.getElementById('currentUserRoleDisplay');
+            if (roleSpan) roleSpan.innerText = window.currentUserRole || localStorage.getItem('pharmapos_user_role') || 'owner';
+            const offlineSpan = document.getElementById('offlineStatus');
+            if (offlineSpan) {
+                offlineSpan.innerText = window.offlineMode ? '📴 Offline Mode - Local only' : '🟢 Online - Auto-sync enabled';
+                offlineSpan.className = window.offlineMode ? 'badge badge-warning' : 'badge badge-success';
+            }
+        }
+
+        renderEmployeeTable();
+        updateUserInfo();
+    </script>
+</body>
+</html>

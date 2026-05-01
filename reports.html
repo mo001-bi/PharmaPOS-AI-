@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Reports | PharmaPOS AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-prescription-bottle"></i> PharmaPOS AI</div>
+            <nav>
+                <a href="dashboard.html" class="nav-item"> <i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="inventory.html" class="nav-item"> <i class="fas fa-cubes"></i> Inventory</a>
+                <a href="prescription-scanner.html" class="nav-item">  <i class="fas fa-camera-retro"></i> Smart Rx Scan</a>
+                <a href="add-medicine.html" class="nav-item"><i class="fas fa-plus-circle"></i>  Add Medicine</a>
+                <a href="billing.html" class="nav-item"><i class="fas fa-shopping-cart"></i> Billing POS</a>
+                <a href="suppliers.html" class="nav-item"> <i class="fas fa-truck"></i>  Suppliers</a>
+                <a href="customers.html" class="nav-item">  <i class="fas fa-users"></i> CRM / Loyalty</a>
+                <a href="reports.html" class="nav-item active"> <i class="fas fa-chart-line"></i> Analytics</a>
+                <a href="employees.html" class="nav-item"> <i class="fas fa-user-shield"></i> Employees</a>
+                <a href="settings.html" class="nav-item"> <i class="fas fa-sliders-h"></i>  Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="grid-2">
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i> Profit Breakdown</h3>
+                    <canvas id="profitChart" height="200"></canvas>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Monthly Sales Trend</h3>
+                    <canvas id="salesTrendChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3><i class="fas fa-skull-crosswalk"></i> Expiry Loss Estimation</h3>
+                    <p><strong>Total expired stock value:</strong> <span id="expiryLossValue">₹0</span></p>
+                    <p><strong>Near-expiry (30 days):</strong> <span id="nearExpiryCount">0</span> medicines</p>
+                    <button id="downloadReportBtn"><i class="fas fa-download"></i> Download Full Report (CSV)</button>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-chart-simple"></i> Top 5 Selling Medicines</h3>
+                    <div id="topSellingList"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (mobile) updated -->
+        <div class="bottom-nav">
+            <!-- First 5 (visible initially) -->
+            <a href="dashboard.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Home</span></a>
+            <a href="inventory.html" class="nav-icon"><i class="fas fa-boxes"></i><span>Stock</span></a>
+            <a href="prescription-scanner.html" class="nav-icon"><i class="fas fa-camera"></i><span>Scan Rx</span></a>
+            <a href="add-medicine.html" class="nav-icon"><i class="fas fa-plus-circle"></i><span>Add Med</span></a>
+            <a href="billing.html" class="nav-icon"><i class="fas fa-cash-register"></i><span>Bill</span></a>
+        
+            <!-- Next 5 (scroll to see) -->
+            <a href="suppliers.html" class="nav-icon"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+            <a href="customers.html" class="nav-icon"><i class="fas fa-users"></i><span>CRM</span></a>
+            <a href="reports.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="employees.html" class="nav-icon"><i class="fas fa-user-shield"></i><span>Staff</span></a>
+            <a href="settings.html" class="nav-icon"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
+        </div>
+    </div>
+
+    <div class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark</div>
+
+    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Reports & Analytics Module
+         * Displays profit/loss charts, expiry loss, top selling items.
+         */
+
+        let profitChart, salesChart;
+
+        function initCharts() {
+            // Profit doughnut chart
+            const profitCtx = document.getElementById('profitChart').getContext('2d');
+            const grossProfit = 84200;   // Example values
+            const operatingCost = 21400;
+            const tax = 4300;
+            profitChart = new Chart(profitCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gross Profit', 'Operating Cost', 'Tax'],
+                    datasets: [{
+                        data: [grossProfit, operatingCost, tax],
+                        backgroundColor: ['#10b981', '#f59e0b', '#e11d48'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Sales trend line chart
+            const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Sales (₹)',
+                        data: [32500, 41800, 39200, 48700, 61200, 54800],
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(15,110,107,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function updateExpiryLoss() {
+            const loss = calculateExpiryLoss();
+            document.getElementById('expiryLossValue').innerHTML = formatCurrency(loss);
+            const nearExpiry = getExpiringMedicines(30).length;
+            document.getElementById('nearExpiryCount').innerText = nearExpiry;
+        }
+
+        function renderTopSelling() {
+            // Simulate top selling based on sales (in real app you'd track sales counts)
+            const topMeds = [...medicines]
+                .sort((a, b) => (b.sellingPrice - b.purchasePrice) - (a.sellingPrice - a.purchasePrice))
+                .slice(0, 5);
+            const html = topMeds.map((m, idx) => `
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                    <span>${idx+1}. ${m.name}</span>
+                    <span class="badge badge-success">${formatCurrency(m.sellingPrice)}</span>
+                </div>
+            `).join('');
+            document.getElementById('topSellingList').innerHTML = html || '<p>No data</p>';
+        }
+
+        function downloadCSV() {
+            // Basic CSV export of medicines inventory
+            let csvRows = [["ID","Name","Salt","Stock","Expiry","Purchase Price","Selling Price"]];
+            for (const med of medicines) {
+                csvRows.push([
+                    med.id, med.name, med.salt || '', med.stock, med.expiry,
+                    med.purchasePrice, med.sellingPrice
+                ]);
+            }
+            const csvContent = csvRows.map(row => row.join(",")).join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pharma_report_${new Date().toISOString().slice(0,19)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert("Report downloaded. Includes full inventory snapshot.");
+        }
+
+        document.getElementById('downloadReportBtn')?.addEventListener('click', downloadCSV);
+
+        // Initialize
+        initCharts();
+        updateExpiryLoss();
+        renderTopSelling();
+    </script>
+</body>
+</html>

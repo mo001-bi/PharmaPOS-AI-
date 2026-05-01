@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer CRM | PharmaPOS AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-prescription-bottle"></i> PharmaPOS AI</div>
+            <nav>
+                <a href="dashboard.html" class="nav-item"> <i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="inventory.html" class="nav-item"> <i class="fas fa-cubes"></i> Inventory</a>
+                <a href="prescription-scanner.html" class="nav-item"> <i class="fas fa-camera-retro"></i> Smart Rx Scan</a>
+                <a href="add-medicine.html" class="nav-item"> <i class="fas fa-plus-circle"></i>  Add Medicine</a>
+                <a href="billing.html" class="nav-item"> <i class="fas fa-shopping-cart"></i>  Billing POS</a>
+                <a href="suppliers.html" class="nav-item"> <i class="fas fa-truck"></i> Suppliers</a>
+                <a href="customers.html" class="nav-item active"> <i class="fas fa-users"></i> CRM / Loyalty</a>
+                <a href="reports.html" class="nav-item"> <i class="fas fa-chart-line"></i> Analytics</a>
+                <a href="employees.html" class="nav-item"> <i class="fas fa-user-shield"></i> Employees</a>
+                <a href="settings.html" class="nav-item"> <i class="fas fa-sliders-h"></i> Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="card">
+                <h3><i class="fas fa-user-plus"></i> Register New Customer</h3>
+                <div class="grid-2" style="margin-top: 1rem;">
+                    <input type="text" id="newCustName" placeholder="Full Name">
+                    <input type="text" id="newCustMobile" placeholder="Mobile Number">
+                    <button id="registerCustBtn" style="grid-column: span 2;">Add Customer</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-users"></i> Customer Directory</h3>
+                <div class="search-bar">
+                    <input type="text" id="customerSearch" placeholder="Search by name or mobile...">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="customerTable">
+                        <thead>
+                            <tr><th>Name</th><th>Mobile</th><th>Total Spent</th><th>Loyalty Points</th><th>Last Purchase</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="customerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+      <!-- Bottom Navigation (mobile) updated -->
+      <div class="bottom-nav">
+        <!-- First 5 (visible initially) -->
+        <a href="dashboard.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Home</span></a>
+        <a href="inventory.html" class="nav-icon"><i class="fas fa-boxes"></i><span>Stock</span></a>
+        <a href="prescription-scanner.html" class="nav-icon"><i class="fas fa-camera"></i><span>Scan Rx</span></a>
+        <a href="add-medicine.html" class="nav-icon"><i class="fas fa-plus-circle"></i><span>Add Med</span></a>
+        <a href="billing.html" class="nav-icon"><i class="fas fa-cash-register"></i><span>Bill</span></a>
+    
+        <!-- Next 5 (scroll to see) -->
+        <a href="suppliers.html" class="nav-icon"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+        <a href="customers.html" class="nav-icon"><i class="fas fa-users"></i><span>CRM</span></a>
+        <a href="reports.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+        <a href="employees.html" class="nav-icon"><i class="fas fa-user-shield"></i><span>Staff</span></a>
+        <a href="settings.html" class="nav-icon"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
+    </div>
+    </div>
+
+    <div class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark</div>
+
+    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Customer CRM Module
+         * Manages customer database, loyalty points, refill reminders, subscriptions.
+         */
+
+        let currentSearchTerm = '';
+
+        function renderCustomerTable() {
+            const filtered = currentSearchTerm
+                ? customersList.filter(c => 
+                    c.name.toLowerCase().includes(currentSearchTerm) ||
+                    c.mobile.includes(currentSearchTerm)
+                  )
+                : customersList;
+
+            const html = filtered.map(c => `
+                <tr>
+                    <td><strong>${c.name}</strong></td>
+                    <td>${c.mobile}</td>
+                    <td>${formatCurrency(c.totalSpent)}</td>
+                    <td><span class="badge badge-success">${c.loyaltyPoints} pts</span></td>
+                    <td>${c.lastPurchase || 'Never'}</td>
+                    <td>
+                        <button class="btn-sm" onclick="sendRefillReminder('${c.name}', '${c.mobile}')"><i class="fas fa-bell"></i> Remind</button>
+                        <button class="btn-sm outline" onclick="addSubscription('${c.name}')"><i class="fas fa-calendar-check"></i> Subscribe</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('customerTableBody').innerHTML = html || '<tr><td colspan="6">No customers found</td></tr>';
+        }
+
+        // Register new customer
+        document.getElementById('registerCustBtn')?.addEventListener('click', () => {
+            const name = document.getElementById('newCustName').value.trim();
+            const mobile = document.getElementById('newCustMobile').value.trim();
+
+            if (!name || !mobile) {
+                alert('Please enter both name and mobile number.');
+                return;
+            }
+
+            if (customersList.some(c => c.mobile === mobile)) {
+                alert('Customer with this mobile already exists.');
+                return;
+            }
+
+            const newId = Math.max(...customersList.map(c => c.id), 0) + 1;
+            customersList.push({
+                id: newId,
+                name: name,
+                mobile: mobile,
+                totalSpent: 0,
+                loyaltyPoints: 0,
+                lastPurchase: null,
+                medSubscription: null
+            });
+
+            window.saveAppState();
+            document.getElementById('newCustName').value = '';
+            document.getElementById('newCustMobile').value = '';
+            renderCustomerTable();
+            alert(`Customer ${name} added successfully!`);
+        });
+
+        // Search filter
+        document.getElementById('customerSearch')?.addEventListener('input', (e) => {
+            currentSearchTerm = e.target.value.toLowerCase();
+            renderCustomerTable();
+        });
+
+        // Global functions for inline buttons
+        window.sendRefillReminder = (name, mobile) => {
+            // Simulate SMS/WhatsApp reminder
+            alert(`📱 Reminder sent to ${name} (${mobile}): "Your medicine refill is due. Visit us for loyalty points!"`);
+        };
+
+        window.addSubscription = (name) => {
+            const med = prompt(`Enter medicine name for ${name}'s monthly subscription:`);
+            if (med) {
+                const customer = customersList.find(c => c.name === name);
+                if (customer) {
+                    customer.medSubscription = med;
+                    window.saveAppState();
+                    alert(`Subscription set: ${name} will receive ${med} every month.`);
+                }
+            }
+        };
+
+        // Initial render
+        renderCustomerTable();
+    </script>
+</body>
+</html>

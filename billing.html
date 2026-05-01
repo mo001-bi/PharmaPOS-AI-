@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing POS | PharmaPOS AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-prescription-bottle"></i> PharmaPOS AI</div>
+            <nav>
+                <a href="dashboard.html" class="nav-item"> <i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="inventory.html" class="nav-item">  <i class="fas fa-cubes"></i> Inventory</a>
+                <a href="prescription-scanner.html" class="nav-item">  <i class="fas fa-camera-retro"></i> Smart Rx Scan</a>
+                <a href="add-medicine.html" class="nav-item"> <i class="fas fa-plus-circle"></i>  Add Medicine</a>   <!-- REMOVED active -->
+                <a href="billing.html" class="nav-item active"> <i class="fas fa-shopping-cart"></i> Billing POS</a>
+                <a href="suppliers.html" class="nav-item"> <i class="fas fa-truck"></i> Suppliers</a>
+                <a href="customers.html" class="nav-item"> <i class="fas fa-users"></i> CRM / Loyalty</a>
+                <a href="reports.html" class="nav-item"> <i class="fas fa-chart-line"></i> Analytics</a>
+                <a href="employees.html" class="nav-item"> <i class="fas fa-user-shield"></i> Employees</a>
+                <a href="settings.html" class="nav-item"> <i class="fas fa-sliders-h"></i> Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="grid-2">
+                <!-- Cart Section -->
+                <div class="card">
+                    <h3><i class="fas fa-shopping-cart"></i> Current Cart</h3>
+                    <div id="cartItemsList">
+                        <p>Cart is empty</p>
+                    </div>
+                    <button id="clearCartBtn" class="outline" style="margin-top: 1rem;"><i class="fas fa-trash-alt"></i> Clear Cart</button>
+                </div>
+                
+                <!-- Billing Section -->
+                <div class="card">
+                    <h3><i class="fas fa-receipt"></i> Checkout</h3>
+                    <div class="form-group">
+                        <label>Discount (₹)</label>
+                        <input type="number" id="discountInput" value="0" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Customer Mobile (for loyalty)</label>
+                        <input type="text" id="customerMobile" list="custList" placeholder="Enter mobile number">
+                        <datalist id="custList"></datalist>
+                        <button id="applyLoyaltyBtn" class="outline" style="margin-top: 0.5rem;">Apply Loyalty Points</button>
+                    </div>
+                    <div id="totalsDisplay" style="margin: 1rem 0; padding: 1rem; background: var(--bg); border-radius: 1rem;">
+                        <p>Subtotal: <span id="subtotal">₹0.00</span></p>
+                        <p>GST (5%): <span id="gst">₹0.00</span></p>
+                        <p><strong>Total: <span id="total">₹0.00</span></strong></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Mode</label>
+                        <select id="paymentMode">
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="upi">UPI</option>
+                        </select>
+                    </div>
+                    <button id="processPaymentBtn" style="width: 100%;"><i class="fas fa-check-circle"></i> Process Payment</button>
+                    <button id="returnRefundBtn" class="outline" style="width: 100%; margin-top: 0.5rem;"><i class="fas fa-undo-alt"></i> Return / Refund</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (mobile) updated -->
+        <div class="bottom-nav">
+            <!-- First 5 (visible initially) -->
+            <a href="dashboard.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Home</span></a>
+            <a href="inventory.html" class="nav-icon"><i class="fas fa-boxes"></i><span>Stock</span></a>
+            <a href="prescription-scanner.html" class="nav-icon"><i class="fas fa-camera"></i><span>Scan Rx</span></a>
+            <a href="add-medicine.html" class="nav-icon"><i class="fas fa-plus-circle"></i><span>Add Med</span></a>
+            <a href="billing.html" class="nav-icon"><i class="fas fa-cash-register"></i><span>Bill</span></a>
+        
+            <!-- Next 5 (scroll to see) -->
+            <a href="suppliers.html" class="nav-icon"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+            <a href="customers.html" class="nav-icon"><i class="fas fa-users"></i><span>CRM</span></a>
+            <a href="reports.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="employees.html" class="nav-icon"><i class="fas fa-user-shield"></i><span>Staff</span></a>
+            <a href="settings.html" class="nav-icon"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
+        </div>
+    </div>
+
+    <div class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark</div>
+
+    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Billing Page Controller
+         * Manages cart display, discount application, customer loyalty,
+         * payment processing, and stock deduction.
+         */
+        
+        let currentLoyaltyDiscount = 0;
+        
+        function updateCustomerList() {
+            const datalist = document.getElementById('custList');
+            datalist.innerHTML = customersList.map(c => `<option value="${c.mobile}">${c.name} - ${c.mobile}</option>`).join('');
+        }
+        
+        function renderCart() {
+            const cartContainer = document.getElementById('cartItemsList');
+            if (!cart || cart.length === 0) {
+                cartContainer.innerHTML = '<p>Cart is empty. Add items from Inventory or Prescription Scanner.</p>';
+                updateTotals();
+                return;
+            }
+            
+            const cartHtml = cart.map((item, idx) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        <small>Qty: ${item.qty} × ${formatCurrency(item.price)}</small>
+                    </div>
+                    <div>
+                        <span>${formatCurrency(item.price * item.qty)}</span>
+                        <button onclick="window.updateCartQty(${idx}, -1)" class="btn-sm" style="margin-left: 8px;">-</button>
+                        <button onclick="window.updateCartQty(${idx}, 1)" class="btn-sm">+</button>
+                        <button onclick="window.removeCartItem(${idx})" class="btn-sm danger" style="background: var(--danger);">✕</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            cartContainer.innerHTML = cartHtml;
+            updateTotals();
+        }
+        
+        function updateTotals() {
+            const discount = parseFloat(document.getElementById('discountInput')?.value) || 0;
+            const totals = calculateCartTotals(cart, discount + currentLoyaltyDiscount);
+            
+            document.getElementById('subtotal').innerHTML = formatCurrency(totals.subtotal);
+            document.getElementById('gst').innerHTML = formatCurrency(totals.gst);
+            document.getElementById('total').innerHTML = formatCurrency(totals.total);
+        }
+        
+        async function processPayment() {
+            if (cart.length === 0) {
+                alert('Cart is empty. Add items before checkout.');
+                return;
+            }
+            
+            const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+            const totalDiscount = discount + currentLoyaltyDiscount;
+            const totals = calculateCartTotals(cart, totalDiscount);
+            const paymentMode = document.getElementById('paymentMode').value;
+            
+            // Deduct stock
+            for (const item of cart) {
+                const med = medicines.find(m => m.id === item.id);
+                if (med) {
+                    med.stock -= item.qty;
+                    if (med.stock < 0) med.stock = 0;
+                }
+            }
+            
+            // Update customer spending & loyalty points
+            if (selectedCustomer) {
+                selectedCustomer.totalSpent += totals.subtotal;
+                selectedCustomer.loyaltyPoints += Math.floor(totals.subtotal / 100); // 1 point per ₹100
+                selectedCustomer.lastPurchase = new Date().toISOString().split('T')[0];
+            }
+            
+            alert(`✅ Payment successful!\nAmount: ${formatCurrency(totals.total)}\nMode: ${paymentMode.toUpperCase()}\n\nStock has been updated.`);
+            
+            // Clear cart and reset
+            window.clearCart();
+            currentLoyaltyDiscount = 0;
+            selectedCustomer = null;
+            document.getElementById('discountInput').value = 0;
+            document.getElementById('customerMobile').value = '';
+            renderCart();
+            updateCustomerList();
+            
+            // Save state
+            window.saveAppState();
+        }
+        
+        // Apply loyalty points
+        document.getElementById('applyLoyaltyBtn')?.addEventListener('click', () => {
+            const mobile = document.getElementById('customerMobile').value;
+            const customer = customersList.find(c => c.mobile === mobile);
+            
+            if (customer) {
+                selectedCustomer = customer;
+                const maxDiscount = Math.min(customer.loyaltyPoints, calculateCartTotals(cart, 0).subtotal * 0.1);
+                currentLoyaltyDiscount = maxDiscount;
+                document.getElementById('discountInput').value = currentLoyaltyDiscount;
+                alert(`Loyalty customer: ${customer.name}\nPoints: ${customer.loyaltyPoints}\nDiscount applied: ${formatCurrency(currentLoyaltyDiscount)}`);
+                updateTotals();
+            } else {
+                alert('Customer not found. Register them in CRM page.');
+            }
+        });
+        
+        document.getElementById('discountInput')?.addEventListener('input', updateTotals);
+        document.getElementById('processPaymentBtn')?.addEventListener('click', processPayment);
+        document.getElementById('clearCartBtn')?.addEventListener('click', () => {
+            if (confirm('Clear entire cart?')) {
+                window.clearCart();
+                renderCart();
+            }
+        });
+        document.getElementById('returnRefundBtn')?.addEventListener('click', () => {
+            alert('Return/Refund workflow: Select item from past sales to process return.');
+        });
+        
+        // Initial load
+        updateCustomerList();
+        renderCart();
+        
+        // Listen for cart updates from other pages
+        window.addEventListener('cart-updated', renderCart);
+    </script>
+</body>
+</html>

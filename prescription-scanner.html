@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Prescription Scanner | PharmaPOS AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-prescription-bottle"></i> PharmaPOS AI</div>
+            <nav>
+                <a href="dashboard.html" class="nav-item"> <i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="inventory.html" class="nav-item"> <i class="fas fa-cubes"></i> Inventory</a>
+                <a href="prescription-scanner.html" class="nav-item active"> <i class="fas fa-camera-retro"> </i>Smart Rx Scan</a>
+                <a href="add-medicine.html" class="nav-item"> <i class="fas fa-plus-circle"></i>  Add Medicine</a>   <!-- REMOVED active -->
+                <a href="billing.html" class="nav-item"> <i class="fas fa-shopping-cart"></i> Billing POS</a>
+                <a href="suppliers.html" class="nav-item"> <i class="fas fa-truck"></i> Suppliers</a>
+                <a href="customers.html" class="nav-item"> <i class="fas fa-users"></i> CRM / Loyalty</a>
+                <a href="reports.html" class="nav-item">  <i class="fas fa-chart-line"></i>  Analytics</a>
+                <a href="employees.html" class="nav-item"> <i class="fas fa-user-shield"></i> Employees</a>
+                <a href="settings.html" class="nav-item"> <i class="fas fa-sliders-h"></i> Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="card text-center" style="text-align: center;">
+                <i class="fas fa-camera-retro" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>AI-Powered Prescription Scanner</h3>
+                <p>Upload or scan prescription - automatic medicine detection with substitution handling</p>
+                <button id="simulateRxBtn" style="margin-top: 1rem;"><i class="fas fa-file-prescription"></i> Simulate Prescription Scan</button>
+            </div>
+            
+            <div class="card" id="detectedMedsCard" style="display: none;">
+                <h3><i class="fas fa-list-check"></i> Detected Medicines</h3>
+                <div id="detectedList"></div>
+                <button id="addDetectedToCartBtn" class="btn"><i class="fas fa-cart-plus"></i> Add All to Cart (with Substitution)</button>
+            </div>
+        </main>
+
+       <!-- Bottom Navigation (mobile) updated -->
+       <div class="bottom-nav">
+        <!-- First 5 (visible initially) -->
+        <a href="dashboard.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Home</span></a>
+        <a href="inventory.html" class="nav-icon"><i class="fas fa-boxes"></i><span>Stock</span></a>
+        <a href="prescription-scanner.html" class="nav-icon"><i class="fas fa-camera"></i><span>Scan Rx</span></a>
+        <a href="add-medicine.html" class="nav-icon"><i class="fas fa-plus-circle"></i><span>Add Med</span></a>
+        <a href="billing.html" class="nav-icon"><i class="fas fa-cash-register"></i><span>Bill</span></a>
+    
+        <!-- Next 5 (scroll to see) -->
+        <a href="suppliers.html" class="nav-icon"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+        <a href="customers.html" class="nav-icon"><i class="fas fa-users"></i><span>CRM</span></a>
+        <a href="reports.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+        <a href="employees.html" class="nav-icon"><i class="fas fa-user-shield"></i><span>Staff</span></a>
+        <a href="settings.html" class="nav-icon"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
+    </div>
+    </div>
+
+    <div class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark</div>
+
+    <!-- Alternative Medicine Modal -->
+    <div id="altModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-exchange-alt"></i> Out of Stock - Alternatives</h3>
+            <p id="altOriginalMed"></p>
+            <div id="altListContainer"></div>
+            <button id="closeAltModal" class="outline" style="margin-top: 1rem;">Cancel</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Prescription Scanner Module
+         * Simulates OCR detection and handles out-of-stock substitution
+         */
+        
+        let detectedMedicines = []; // Store detected medicines with quantities
+        let pendingAlternativeCallback = null;
+        
+        // Alternative modal handlers
+        function showAlternativeModal(originalMed, callback) {
+            const alternatives = findAlternatives(originalMed);
+            if (alternatives.length === 0) {
+                alert(`No alternative found for ${originalMed.name}. Please consult pharmacist.`);
+                callback(null);
+                return;
+            }
+            
+            document.getElementById("altOriginalMed").innerHTML = `<strong>${originalMed.name}</strong> is out of stock. Choose alternative:`;
+            document.getElementById("altListContainer").innerHTML = alternatives.map(alt => `
+                <div style="border-bottom: 1px solid var(--border); padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div><strong>${alt.name}</strong><br>${alt.salt} | ${formatCurrency(alt.sellingPrice)} | Stock: ${alt.stock}</div>
+                    <button class="select-alt-btn" data-id="${alt.id}">Select</button>
+                </div>
+            `).join('');
+            
+            document.getElementById("altModal").classList.add("active");
+            
+            document.querySelectorAll(".select-alt-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    const altId = parseInt(btn.dataset.id);
+                    const altMed = medicines.find(m => m.id === altId);
+                    callback(altMed);
+                    document.getElementById("altModal").classList.remove("active");
+                });
+            });
+            
+            pendingAlternativeCallback = callback;
+        }
+        
+        document.getElementById("closeAltModal")?.addEventListener("click", () => {
+            document.getElementById("altModal").classList.remove("active");
+            if (pendingAlternativeCallback) pendingAlternativeCallback(null);
+        });
+        
+        // Simulate prescription scan
+        document.getElementById("simulateRxBtn")?.addEventListener("click", () => {
+            // Simulated OCR result
+            detectedMedicines = [
+                { id: 1, name: "Crocin 650mg", qty: 2 },
+                { id: 4, name: "Azithral 500", qty: 1 }
+            ];
+            
+            const medStatuses = detectedMedicines.map(d => {
+                const med = medicines.find(m => m.id === d.id);
+                const inStock = med && med.stock >= d.qty;
+                return { ...d, inStock, stockAvailable: med?.stock || 0 };
+            });
+            
+            const listHtml = medStatuses.map(d => `
+                <div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                    <strong>${d.name}</strong> x${d.qty} - 
+                    ${d.inStock ? '<span class="badge-success badge">✅ In Stock</span>' : '<span class="badge-danger badge">❌ Out of Stock (Alternative available)</span>'}
+                </div>
+            `).join('');
+            
+            document.getElementById("detectedList").innerHTML = listHtml;
+            document.getElementById("detectedMedsCard").style.display = "block";
+        });
+        
+        // Add detected medicines to cart with substitution handling
+        document.getElementById("addDetectedToCartBtn")?.addEventListener("click", () => {
+            let processed = 0;
+            
+            function processNext(index) {
+                if (index >= detectedMedicines.length) {
+                    alert(`Added ${processed} items to cart. Please go to Billing page to complete checkout.`);
+                    return;
+                }
+                
+                const d = detectedMedicines[index];
+                const med = medicines.find(m => m.id === d.id);
+                
+                if (!med) {
+                    processNext(index + 1);
+                    return;
+                }
+                
+                if (med.stock >= d.qty) {
+                    window.addToCartDirect(med.id, d.qty);
+                    processed++;
+                    processNext(index + 1);
+                } else {
+                    // Out of stock - show alternatives
+                    showAlternativeModal(med, (alternative) => {
+                        if (alternative) {
+                            window.addToCartDirect(alternative.id, d.qty);
+                            processed++;
+                        } else {
+                            alert(`Skipped ${med.name} - no alternative selected.`);
+                        }
+                        processNext(index + 1);
+                    });
+                }
+            }
+            
+            processNext(0);
+        });
+    </script>
+</body>
+</html>

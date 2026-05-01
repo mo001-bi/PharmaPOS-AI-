@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Medicine | PharmaPOS AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-prescription-bottle"></i> PharmaPOS AI</div>
+            <nav>
+                <a href="dashboard.html" class="nav-item"> <i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="inventory.html" class="nav-item">  <i class="fas fa-cubes"></i> Inventory</a>
+                <a href="prescription-scanner.html" class="nav-item">  <i class="fas fa-camera-retro"></i> Smart Rx Scan</a>
+                <a href="add-medicine.html" class="nav-item active"> <i class="fas fa-plus-circle"></i>  Add Medicine</a>
+                <a href="billing.html" class="nav-item"> <i class="fas fa-shopping-cart"></i> Billing POS</a>
+                <a href="suppliers.html" class="nav-item"> <i class="fas fa-truck"></i> Suppliers</a>
+                <a href="customers.html" class="nav-item"> <i class="fas fa-users"></i> CRM / Loyalty</a>
+                <a href="reports.html" class="nav-item">  <i class="fas fa-chart-line"></i> Analytics</a>
+                <a href="employees.html" class="nav-item"> <i class="fas fa-user-shield"></i> Employees</a>
+                <a href="settings.html" class="nav-item"> <i class="fas fa-sliders-h"></i> Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="card">
+                <h2><i class="fas fa-plus-circle"></i> Add New Medicine to Inventory</h2>
+                <p class="text-secondary">Fill in all details below. Categories help organize your pharmacy stock.</p>
+                
+                <form id="addMedicineForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Medicine Name *</label>
+                            <input type="text" id="medName" required placeholder="e.g., Combiflam 500mg">
+                        </div>
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select id="medCategory" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="Analgesic">💊 Analgesic (Pain Relief)</option>
+                                <option value="Antibiotic">🦠 Antibiotic</option>
+                                <option value="Antidiabetic">🩸 Antidiabetic</option>
+                                <option value="Antihypertensive">❤️ Antihypertensive (BP)</option>
+                                <option value="Antihistamine">🤧 Antihistamine (Allergy)</option>
+                                <option value="Antifungal">🍄 Antifungal</option>
+                                <option value="Antiviral">🦠 Antiviral</option>
+                                <option value="Vitamins/Supplements">💪 Vitamins & Supplements</option>
+                                <option value="Gastrointestinal">🧴 Gastrointestinal (Digestion)</option>
+                                <option value="Respiratory">🌬️ Respiratory (Asthma/COPD)</option>
+                                <option value="Dermatological">🧴 Dermatological (Skin)</option>
+                                <option value="Neurological">🧠 Neurological</option>
+                                <option value="Eye/Ear Drops">👁️ Eye/Ear Preparations</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Salt / Active Ingredient</label>
+                            <input type="text" id="medSalt" placeholder="e.g., Ibuprofen + Paracetamol">
+                        </div>
+                        <div class="form-group">
+                            <label>Dosage / Strength</label>
+                            <input type="text" id="medDosage" placeholder="e.g., 400mg">
+                        </div>
+                        <div class="form-group">
+                            <label>Batch Number *</label>
+                            <input type="text" id="medBatch" required placeholder="e.g., B23X1">
+                        </div>
+                        <div class="form-group">
+                            <label>Expiry Date *</label>
+                            <input type="date" id="medExpiry" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Quantity *</label>
+                            <input type="number" id="medStock" required min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Purchase Price (₹) *</label>
+                            <input type="number" id="medPurchasePrice" required step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Selling Price (₹) *</label>
+                            <input type="number" id="medSellingPrice" required step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Supplier Name</label>
+                            <input type="text" id="medSupplier" placeholder="e.g., Cipla, SunPharma, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label>Schedule (if any)</label>
+                            <select id="medSchedule">
+                                <option value="G">Schedule G (General)</option>
+                                <option value="H">Schedule H (Prescription only)</option>
+                                <option value="X">Schedule X (Narcotic)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button type="submit" id="submitMedicineBtn"><i class="fas fa-save"></i> Add Medicine</button>
+                        <button type="reset" class="outline">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-info-circle"></i> Recent Additions</h3>
+                <div id="recentAdditionsList">
+                    <p>No new medicines added this session.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (mobile) updated -->
+        <div class="bottom-nav">
+            <!-- First 5 (visible initially) -->
+            <a href="dashboard.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Home</span></a>
+            <a href="inventory.html" class="nav-icon"><i class="fas fa-boxes"></i><span>Stock</span></a>
+            <a href="prescription-scanner.html" class="nav-icon"><i class="fas fa-camera"></i><span>Scan Rx</span></a>
+            <a href="add-medicine.html" class="nav-icon"><i class="fas fa-plus-circle"></i><span>Add Med</span></a>
+            <a href="billing.html" class="nav-icon"><i class="fas fa-cash-register"></i><span>Bill</span></a>
+        
+            <!-- Next 5 (scroll to see) -->
+            <a href="suppliers.html" class="nav-icon"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+            <a href="customers.html" class="nav-icon"><i class="fas fa-users"></i><span>CRM</span></a>
+            <a href="reports.html" class="nav-icon"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="employees.html" class="nav-icon"><i class="fas fa-user-shield"></i><span>Staff</span></a>
+            <a href="settings.html" class="nav-icon"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
+        </div>
+    </div>
+
+    <div class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark</div>
+
+    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Add Medicine Module - Allows pharmacists/owners to add new products.
+         * Validates input and pushes to global medicines array with auto-generated ID.
+         */
+        
+        let recentMedicines = []; // temporary list for display
+
+        function displayRecentAdditions() {
+            const container = document.getElementById('recentAdditionsList');
+            if (recentMedicines.length === 0) {
+                container.innerHTML = '<p>No new medicines added this session.</p>';
+                return;
+            }
+            const html = recentMedicines.map(med => `
+                <div style="border-bottom: 1px solid var(--border); padding: 8px 0;">
+                    <strong>${med.name}</strong> (${med.category}) - Stock: ${med.stock} | ₹${med.sellingPrice}
+                </div>
+            `).join('');
+            container.innerHTML = html;
+        }
+
+        // Generate a new unique ID for medicine
+        function getNextMedicineId() {
+            return Math.max(...medicines.map(m => m.id), 0) + 1;
+        }
+
+        // Handle form submission
+        document.getElementById('addMedicineForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get all values
+            const name = document.getElementById('medName').value.trim();
+            const category = document.getElementById('medCategory').value;
+            const salt = document.getElementById('medSalt').value.trim();
+            const dosage = document.getElementById('medDosage').value.trim();
+            const batch = document.getElementById('medBatch').value.trim();
+            const expiry = document.getElementById('medExpiry').value;
+            const stock = parseInt(document.getElementById('medStock').value) || 0;
+            const purchasePrice = parseFloat(document.getElementById('medPurchasePrice').value);
+            const sellingPrice = parseFloat(document.getElementById('medSellingPrice').value);
+            const supplier = document.getElementById('medSupplier').value.trim();
+            const schedule = document.getElementById('medSchedule').value;
+            
+            // Validation
+            if (!name) { alert('Medicine name is required'); return; }
+            if (!category) { alert('Please select a category'); return; }
+            if (!batch) { alert('Batch number is required'); return; }
+            if (!expiry) { alert('Expiry date is required'); return; }
+            if (isNaN(stock)) { alert('Stock quantity must be a number'); return; }
+            if (isNaN(purchasePrice) || purchasePrice < 0) { alert('Valid purchase price required'); return; }
+            if (isNaN(sellingPrice) || sellingPrice < 0) { alert('Valid selling price required'); return; }
+            
+            // Optional margin calculation
+            const margin = sellingPrice - purchasePrice;
+            
+            // Create new medicine object
+            const newMedicine = {
+                id: getNextMedicineId(),
+                name: name,
+                salt: salt || "Generic",
+                dosage: dosage || "N/A",
+                batch: batch,
+                expiry: expiry,
+                stock: stock,
+                purchasePrice: purchasePrice,
+                sellingPrice: sellingPrice,
+                supplier: supplier || "Unknown",
+                margin: margin > 0 ? Math.round((margin / purchasePrice) * 100) : 0,
+                schedule: schedule,
+                category: category,
+                interactionGroup: "General"
+            };
+            
+            // Add to global medicines array
+            medicines.push(newMedicine);
+            window.saveAppState();  // persist to localStorage
+            
+            // Update recent list
+            recentMedicines.unshift(newMedicine);
+            if (recentMedicines.length > 5) recentMedicines.pop();
+            displayRecentAdditions();
+            
+            // Show success and reset form (optional)
+            alert(`✅ Medicine "${name}" added successfully!\nID: ${newMedicine.id}\nStock: ${stock} units`);
+            
+            // Optional: clear form except category and schedule
+            document.getElementById('medName').value = '';
+            document.getElementById('medSalt').value = '';
+            document.getElementById('medDosage').value = '';
+            document.getElementById('medBatch').value = '';
+            document.getElementById('medExpiry').value = '';
+            document.getElementById('medStock').value = '0';
+            document.getElementById('medPurchasePrice').value = '';
+            document.getElementById('medSellingPrice').value = '';
+            document.getElementById('medSupplier').value = '';
+            // Keep category and schedule as they are for rapid entry of similar items
+        });
+        
+        // Initial display
+        displayRecentAdditions();
+    </script>
+</body>
+</html>
