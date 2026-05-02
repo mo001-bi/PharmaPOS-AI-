@@ -431,10 +431,3 @@ input:focus, select:focus {
 }
 
 
-/* Force active state for bottom navigation – highest priority */
-.bottom-nav .nav-icon.active,
-.bottom-nav a.nav-icon.active {
-    color: var(--primary) !important;
-    font-weight: 700 !important;
-    border-bottom: 3px solid var(--primary) !important;
-}
