@@ -191,3 +191,38 @@ window.calculateExpiryLoss = calculateExpiryLoss;
 window.getLowStockItems = getLowStockItems;
 window.calculateCartTotals = calculateCartTotals;
 window.formatCurrency = formatCurrency;
+
+
+
+
+
+
+// ============================================
+// BOTTOM NAVIGATION AUTO-SCROLL
+// ============================================
+
+/**
+ * Automatically scroll the bottom navigation to make the active icon visible.
+ * This solves the issue where the active icon (e.g., Reports) is hidden
+ * in the second group of navigation items after page reload.
+ */
+function scrollBottomNavToActive() {
+    const activeLink = document.querySelector('.bottom-nav .nav-icon.active');
+    if (!activeLink) return;
+    
+    const container = document.querySelector('.bottom-nav');
+    if (!container) return;
+    
+    // Calculate scroll position to center the active link
+    const scrollLeft = activeLink.offsetLeft - (container.clientWidth / 2) + (activeLink.clientWidth / 2);
+    container.scrollTo({
+        left: Math.max(0, scrollLeft),
+        behavior: 'smooth'
+    });
+}
+
+// Run the auto-scroll when the page is fully loaded
+document.addEventListener('DOMContentLoaded', scrollBottomNavToActive);
+
+// Also re-run after any potential dynamic content changes (optional)
+window.addEventListener('load', scrollBottomNavToActive);
