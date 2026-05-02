@@ -197,16 +197,19 @@ h1, h2, h3, h4 {
     border-radius: 3px;
 }
 
-/* Responsive */
-@media (max-width: 780px) {
+@media (max-width: 768px) {
     .sidebar {
         display: none;
     }
     .main-content {
-        padding-bottom: 90px;
+        padding-bottom: 110px;   /* increased from 80px to prevent bottom nav overlap */
     }
     .bottom-nav {
         display: flex;
+    }
+    /* Add extra margin to the last card so it doesn't hide behind bottom nav */
+    .card:last-child {
+        margin-bottom: 20px;
     }
 }
 
