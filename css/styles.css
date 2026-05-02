@@ -198,7 +198,7 @@ h1, h2, h3, h4 {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 780px) {
     .sidebar {
         display: none;
     }
